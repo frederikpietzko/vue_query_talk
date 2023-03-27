@@ -1,0 +1,9 @@
+POST http://localhost:8080/api/beasts
+Content-Type: application/json
+
+{
+  "name": "Muskrill",
+  "description": "The Muskrill was a magical beast.",
+  "longDescription": "he Muskrill was a white krill-like creature capable of producing bio-luminescence, ranging in colour from red to green-blue.",
+  "image": "https://static.wikia.nocookie.net/harrypotter/images/6/6f/Muskrill_COG.jpg"
+}
