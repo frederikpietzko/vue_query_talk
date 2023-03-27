@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { useBeastsStore } from '@/stores/beasts'
 import { computed, ref } from 'vue'
-import { type CreateBeastRequestDto, createBeastRequestSchema } from '@/api'
+import { createBeast, type CreateBeastRequestDto, createBeastRequestSchema } from '@/api'
+import { useMutation, useQueryClient } from '@tanstack/vue-query'
+import ErrorCard from '@/components/ErrorCard.vue'
 
 const open = ref(false)
 const formModel = ref<CreateBeastRequestDto>({
@@ -10,24 +11,26 @@ const formModel = ref<CreateBeastRequestDto>({
   image: '',
   longDescription: ''
 })
-const error = ref<string[]>([])
-const store = useBeastsStore()
+
+const queryClient = useQueryClient()
+const {
+  mutate: addBeast,
+  isError,
+  error
+} = useMutation(createBeast, {
+  onSuccess() {
+    queryClient.invalidateQueries(['beastlist'])
+  }
+})
 
 const handleSubmit = () => {
   const result = createBeastRequestSchema.safeParse(formModel.value)
   if (result.success) {
-    store.createBeast(formModel.value)
-  } else {
-    error.value = result.error.issues.map((e) => e.message)
+    addBeast(result.data)
   }
 }
-const valid = computed(
-  () =>
-    formModel.value.name &&
-    formModel.value.description &&
-    formModel.value.longDescription &&
-    formModel.value.image
-)
+
+const valid = computed(() => createBeastRequestSchema.safeParse(formModel.value).success)
 </script>
 <template>
   <v-btn color="primary" variant="elevated" height="4em" @click="open = true">
@@ -45,6 +48,7 @@ const valid = computed(
           Add New Beast
         </v-card-title>
         <v-card-text>
+          <ErrorCard :error="error" v-if="isError" />
           <v-text-field
             variant="solo"
             v-model="formModel.name"

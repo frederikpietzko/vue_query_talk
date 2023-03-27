@@ -1,29 +1,25 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { useBeastsStore } from '@/stores/beasts'
+import { computed, ref } from 'vue'
 import BeastCard from '@/components/BeastCard.vue'
 import _ from 'lodash'
 import NewBeastDialog from '@/components/NewBeastDialog.vue'
 import ErrorCard from '@/components/ErrorCard.vue'
+import { getAll } from '@/api'
+import { useQuery } from '@tanstack/vue-query'
 
-const store = useBeastsStore()
+const { isLoading, isError, error, data, status } = useQuery({
+  queryKey: ['beastlist'],
+  queryFn: getAll,
+  refetchInterval: 5000,
+  initialData: [],
+  refetchOnWindowFocus: 'always'
+})
+
 const search = ref('')
-onMounted(() => store.getAllBeasts())
-
-const intervalId = ref<number>()
-onMounted(() => {
-  intervalId.value = setInterval(() => store.getAllBeasts(), 5000)
-  window.addEventListener('focus', store.getAllBeasts)
-})
-
-onUnmounted(() => {
-  clearInterval(intervalId.value!)
-  window.removeEventListener('focus', store.getAllBeasts)
-})
 
 const beasts = computed(() =>
   _.chunk(
-    store.beasts.filter((beast) => beast.name.toLowerCase().includes(search.value.toLowerCase())),
+    data.value.filter((beast) => beast.name.toLowerCase().includes(search.value.toLowerCase())),
     3
   )
 )
@@ -42,11 +38,11 @@ const beasts = computed(() =>
       />
       <NewBeastDialog />
     </v-row>
-    <ErrorCard :error="store.error?.message" v-if="store.error?.message" />
-    <v-row class="justify-center" v-if="store.loading && store.beasts.length === 0 && !store.error">
+    <ErrorCard :error="error" v-if="isError" />
+    <v-row class="justify-center" v-if="isLoading">
       <v-progress-circular indeterminate />
     </v-row>
-    <v-row v-for="arr in beasts" v-if="!store.error">
+    <v-row v-for="arr in beasts" v-if="status === 'success'">
       <v-col class="v-col-4" v-for="beast in arr">
         <BeastCard :beast="beast" />
       </v-col>

@@ -10,24 +10,15 @@ const formModel = ref<CreateBeastRequestDto>({
   image: '',
   longDescription: ''
 })
-const error = ref<string[]>([])
 const store = useBeastsStore()
 
 const handleSubmit = () => {
   const result = createBeastRequestSchema.safeParse(formModel.value)
   if (result.success) {
     store.createBeast(formModel.value)
-  } else {
-    error.value = result.error.issues.map((e) => e.message)
   }
 }
-const valid = computed(
-  () =>
-    formModel.value.name &&
-    formModel.value.description &&
-    formModel.value.longDescription &&
-    formModel.value.image
-)
+const valid = computed(() => createBeastRequestSchema.safeParse(formModel.value).success)
 </script>
 <template>
   <v-btn color="primary" variant="elevated" height="4em" @click="open = true">

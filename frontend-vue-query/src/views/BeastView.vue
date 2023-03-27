@@ -1,21 +1,19 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { getById, MagicalBeastDto } from '@/api'
-import { AxiosError } from 'axios'
+import { getById } from '@/api'
 import ErrorCard from '@/components/ErrorCard.vue'
 import { useRouter } from 'vue-router'
+import { useQuery } from '@tanstack/vue-query'
 
 const props = defineProps<{ beastId: number }>()
-const beast = ref<MagicalBeastDto>()
-const error = ref<string>()
-const loading = ref<boolean>(false)
-
-onMounted(() => {
-  loading.value = true
-  getById(props.beastId)
-    .then((b) => (beast.value = b))
-    .catch((e) => (error.value = (e as AxiosError).response?.data as string))
-    .finally(() => (loading.value = false))
+const {
+  isLoading,
+  isError,
+  status,
+  data: beast,
+  error
+} = useQuery({
+  queryKey: ['beast', props.beastId],
+  queryFn: () => getById(props.beastId)
 })
 const router = useRouter()
 </script>
@@ -26,21 +24,21 @@ const router = useRouter()
         <v-btn color="primary" @click="router.back()">Back</v-btn>
       </v-col>
     </v-row>
-    <v-row class="justify-center" v-if="loading">
+    <v-row class="justify-center" v-if="isLoading">
       <v-progress-circular indeterminate />
     </v-row>
-    <ErrorCard :error="error" v-if="error" />
-    <v-row v-if="!loading && !error">
+    <ErrorCard :error="error" v-if="isError" />
+    <v-row v-if="status === 'success'">
       <v-col>
         <v-card>
           <v-card-title>
-            {{ beast?.name }}
+            {{ beast.name }}
           </v-card-title>
           <v-card-text>
-            {{ beast?.description }}
+            {{ beast.description }}
           </v-card-text>
           <v-card-text>
-            {{ beast?.longDescription }}
+            {{ beast.longDescription }}
           </v-card-text>
         </v-card>
       </v-col>

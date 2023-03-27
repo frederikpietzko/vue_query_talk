@@ -1,5 +1,14 @@
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 import { z } from 'zod'
+import _ from 'lodash'
+
+export type Error = AxiosError<{
+  message: string
+}>
+
+export const isError = (error: unknown): error is Error => {
+  return _.has(error, 'response.data.message')
+}
 
 export type MagicalBeastDto = {
   id: number
