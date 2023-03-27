@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { z } from 'zod'
 
 export type MagicalBeastDto = {
   id: number
@@ -8,12 +9,14 @@ export type MagicalBeastDto = {
   image: string
 }
 
-export type CreateBeastRequestDto = {
-  name: string
-  description: string
-  longDescription: string
-  image: string
-}
+export const createBeastRequestSchema = z.object({
+  name: z.string().min(3),
+  description: z.string().min(15),
+  longDescription: z.string().min(45),
+  image: z.string().url()
+})
+
+export type CreateBeastRequestDto = z.infer<typeof createBeastRequestSchema>
 axios.defaults.baseURL = 'http://localhost:8080/api'
 const latency = 3000
 export const getAll = (): Promise<MagicalBeastDto[]> =>

@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { MagicalBeastDto } from '@/api'
+import type { CreateBeastRequestDto, MagicalBeastDto } from '@/api'
 import { createBeast, deleteBeast, getAll } from '@/api'
 import type { AxiosError } from 'axios'
 import _ from 'lodash'
@@ -35,18 +35,15 @@ export const useBeastsStore = defineStore('beasts', {
         this.beasts = prev
       }
     },
-    async createBeast(name: string, description: string, longDescription: string, image: string) {
+    async createBeast(params: CreateBeastRequestDto) {
       const prev = this.beasts
       const optimisticBeast: MagicalBeastDto = {
         id: (_.max(prev.map((b) => b.id)) ?? 0) + 1,
-        name,
-        description,
-        longDescription,
-        image
+        ...params
       }
       this.beasts.push(optimisticBeast)
       try {
-        const beast = await createBeast({ name, description, image, longDescription })
+        const beast = await createBeast(params)
         prev.push(beast)
         this.beasts = prev
       } catch (e) {
