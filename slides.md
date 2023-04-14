@@ -44,7 +44,7 @@ defineStore("todo", {
 });
 ```
 
-Und das für einen simplen get request. Dabei haben wir noch keine:
+### Und das für einen simplen get request. Dabei haben wir noch keine:
 
 - Mutationen
 - Optimistic updates & error rollbacks
@@ -113,7 +113,7 @@ defineStore("todo", {
 
 ## Beispiel 3
 
-Options Api ist leider nicht besser.
+### Options Api ist leider nicht besser.
 
 ```typescript
 import { defineStore } from "pinia";
@@ -263,3 +263,7 @@ Mutations:
 - haben mutate/mutateAsync Function
 - optimistic updates / optimistic ui update (einfacher als optimistic state update)
 - invalidieren queries per Callback
+
+---
+
+# Live Demo
