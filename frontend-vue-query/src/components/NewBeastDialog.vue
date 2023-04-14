@@ -28,6 +28,7 @@ const handleSubmit = () => {
   if (result.success) {
     addBeast(result.data)
   }
+  open.value = false
 }
 
 const valid = computed(() => createBeastRequestSchema.safeParse(formModel.value).success)
@@ -37,12 +38,7 @@ const valid = computed(() => createBeastRequestSchema.safeParse(formModel.value)
     Add new Beast
   </v-btn>
   <v-dialog width="60%" v-model="open">
-    <v-form
-      @submit.prevent="
-        handleSubmit()
-        open = false
-      "
-    >
+    <v-form @submit.prevent="handleSubmit()">
       <v-card>
         <v-card-title class="text-center text-lg-h4 text-purple-lighten-4">
           Add New Beast
