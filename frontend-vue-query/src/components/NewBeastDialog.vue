@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { createBeast, type CreateBeastRequestDto, createBeastRequestSchema } from '@/api'
+import {
+  createBeast,
+  type CreateBeastRequestDto,
+  createBeastRequestSchema,
+  MagicalBeastDto
+} from '@/api'
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
 import ErrorCard from '@/components/ErrorCard.vue'
 
@@ -18,6 +23,15 @@ const {
   isError,
   error
 } = useMutation(createBeast, {
+  // Old school optimistic updates + error rollback. Needed for cross component optimistic updates
+  onMutate(vars) {
+    const beasts = queryClient.getQueryData(['beastlist']) as MagicalBeastDto[]
+    queryClient.setQueryData(['beastlist'], [...beasts, { ...vars, id: -1 }])
+    return beasts
+  },
+  onError(_err, _vars, beasts) {
+    queryClient.setQueryData(['beastlist'], beasts)
+  },
   onSuccess() {
     queryClient.invalidateQueries(['beastlist'])
   }
