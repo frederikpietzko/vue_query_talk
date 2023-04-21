@@ -38,7 +38,7 @@ export const getById = (id: number): Promise<MagicalBeastDto> =>
     .then((res) => res.data)
 export const createBeast = (req: CreateBeastRequestDto): Promise<MagicalBeastDto> =>
   sleep(latency)
-    .then(() => axios.post<MagicalBeastDto>('/beasts'))
+    .then(() => axios.post<MagicalBeastDto>('/beasts', req))
     .then((res) => res.data)
 export const deleteBeast = (id: number): Promise<void> =>
   sleep(latency)

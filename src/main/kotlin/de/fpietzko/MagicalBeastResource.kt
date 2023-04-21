@@ -7,6 +7,8 @@ import javax.ws.rs.*
 
 @Transactional
 @Path("/beasts")
+@Consumes("application/json")
+@Produces("application/json")
 class MagicalBeastResource(
     private val magicalBeastRepository: MagicalBeastRepository,
     private val magicalBeastService: MagicalBeastService

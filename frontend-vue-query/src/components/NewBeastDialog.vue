@@ -40,6 +40,7 @@ const {
 const handleSubmit = () => {
   const result = createBeastRequestSchema.safeParse(formModel.value)
   if (result.success) {
+    console.log(result.data)
     addBeast(result.data)
   }
   open.value = false
