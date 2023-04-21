@@ -1,6 +1,10 @@
 # @tanstack/query 
 
---- 
+---
+
+# Server state doesn't belong in Pinia!
+
+---
 
 ## What types of State do we use in most Web Applications?
 
@@ -9,6 +13,7 @@
   - might house some business logic
   - interactivity across the component tree
   - prevent prop drilling
+  - form validation
 
 ---
 ## What types of State do we use in most Web Applications?
@@ -19,6 +24,9 @@
   - interactivity across the component tree
   - prevent prop drilling
   - form validation
+
+<br/>
+
 - ### Server State
   - fetched from the server
   - error and loading states of network calls
@@ -225,7 +233,7 @@ const {data: todos, isLoading, isError, error, isPending, variables: addedTodo, 
 });
 ```
 
---- 
+---
 
 ## This I prefer
 
@@ -282,7 +290,7 @@ const {
 );
 ```
 
---- 
+---
 
 ## Testing
 
@@ -291,3 +299,11 @@ You might want to test network calls. Just use something like nock for that.
 ---
 
 ## Live Demo
+
+---
+
+---
+
+## Are you interested on a follow up talk about Nuxt + TRPC?
+
+trpc -> Typescript Remote Procedure Call, Fullstack Typesafety without code generation.
