@@ -1,59 +1,32 @@
-# Pinia is for Application State, not client-server synchronization!
+# @tanstack/query 
 
-Hi Ich bin Frederik und ich hasse Globalen State.
+--- 
 
----
+## What types of State do we use in most Web Applications?
 
-## Scherz, Globaler State ist praktisch. Nur nicht um Client & Server zu synchronisieren.
-
----
-
-## Beispiel 1
-
-```typescript
-import { defineStore } from "pinia";
-import axios, { type AxiosError } from "axios";
-
-type MyError = {
-  message: string;
-};
-
-type ErrorState = MyError | null;
-
-defineStore("todo", {
-  state: () => ({
-    todos: [] as Todo[],
-    todosLoading: false,
-    fetchTodosError: null as ErrorState,
-  }),
-  actions: {
-    async getTodos() {
-      this.todosLoading = true;
-      try {
-        const res = await axios.get<Todo[]>("/api/todos");
-        this.fetchTodosError = false;
-        this.todos = res.data;
-      } catch (e) {
-        this.fetchTodosError = ((e as AxiosError).response
-          ?.data as ErrorState) ?? { message: "Unknown Error" };
-      } finally {
-        this.todosLoading = false;
-      }
-    },
-  },
-});
-```
-
-### Und das für einen simplen get request. Dabei haben wir noch keine:
-
-- Mutationen
-- Optimistic updates & error rollbacks
-- Automatisches refetch wenn der Browser neu fokussiert wird / bei Tab wechsel etc.
-- Polling
+- ### Application State
+  - often spans multiple components
+  - might house some business logic
+  - interactivity across the component tree
+  - prevent prop drilling
 
 ---
+## What types of State do we use in most Web Applications?
 
-## Beispiel 2
+- ### Application State
+  - often spans multiple components
+  - might house some business logic
+  - interactivity across the component tree
+  - prevent prop drilling
+  - form validation
+- ### Server State
+  - fetched from the server
+  - error and loading states of network calls
+
+Often these are 2 are both handled in global state like Vuex / Pinia / Redux
+
+---
+## I don't like this
 
 ```typescript
 import { defineStore } from "pinia";
@@ -82,25 +55,21 @@ defineStore("todo", {
         this.todos = res.data;
       } catch (e) {
         this.fetchTodosError = ((e as AxiosError).response
-          ?.data as ErrorState) ?? { message: "Unknown Error" };
+                ?.data as ErrorState) ?? { message: "Unknown Error" };
       } finally {
         this.todosLoading = false;
       }
     },
-    // Optimistic Update & rollback
     async addTodo(title: string) {
       this.addTodoLoading = true;
-      const prev = this.todos;
-      this.todos = [...this.todos, { title }];
       try {
         const res = await axios.post<Todo>("/api/todos", { title });
         this.addTodoError = null;
-        prev.push(res.data);
-        this.todos = prev;
+        this.getTodos();
       } catch (e) {
         this.todos = prev;
         this.addTodoError = ((e as AxiosError).response
-          ?.data as ErrorState) ?? { message: "Unknown Error" };
+                ?.data as ErrorState) ?? { message: "Unknown Error" };
       } finally {
         this.addTodoLoading = false;
       }
@@ -111,9 +80,8 @@ defineStore("todo", {
 
 ---
 
-## Beispiel 3
+### I don't like this
 
-### Options Api ist leider nicht besser.
 
 ```typescript
 import { defineStore } from "pinia";
@@ -139,7 +107,7 @@ defineStore("todo", () => {
       todos.value = res.data;
     } catch (e) {
       fetchTodosError.value = ((e as AxiosError).response
-        ?.data as ErrorState) ?? { message: "Unknown Error" };
+              ?.data as ErrorState) ?? { message: "Unknown Error" };
     } finally {
       todosLoading.value = false;
     }
@@ -147,13 +115,10 @@ defineStore("todo", () => {
   // Optimistic Update & rollback
   const addTodo = async (title: string) => {
     addTodoLoading.value = true;
-    const prev = todos.value;
-    todos.value = [...todos.value, { title }];
     try {
       const res = await axios.post<Todo>("/api/todos", { title });
       addTodoError.value = null;
-      prev.push(res.data);
-      todos.value = prev;
+      getTodos()
     } catch (e) {
       todos.value = prev;
       addTodoError.value = ((e as AxiosError).response?.data as ErrorState) ?? {
@@ -178,15 +143,13 @@ defineStore("todo", () => {
 
 ---
 
-## Mein Problem
+### I don't like this
 
-Ich finde das nervig.
-
-Zum Glück gibt es dafür Abstraktionen, die einem das Leben vereinfachen.
+And this type of state (data, loading, error) is replicated for each query or mutation.
 
 ---
 
-## @tanstack/query
+## This I prefer
 
 ```typescript
 const {
@@ -208,26 +171,15 @@ const {
   isLoading: addTodoLoading,
   isError: todoIsError,
   error: addTodoError,
-  // 1. variente fuer optimistic updates
+  // variente fuer optimistic updates
   isPending,
   variables
 } = useMutation(
   (title: string) =>
     axios.post<Todo>("/api/todos", { title }).then((res) => res.data),
   {
-    // Automatisches Refetch
     onSuccess() {
       queryClient.invalidateQueries(["todos"]);
-    },
-    // 2. variante (Optional) Optimistic Update
-    onMutate(title) {
-      const todos = queryClient.getQueryData(["todos"]);
-      queryClient.setQueryData(["todos"], [...todos, { title }]);
-      return todos;
-    },
-    // 2. variante (Optional) Error Rollback
-    onError(_err, _vars, ctx) {
-      queryClient.setQueryData(["todos"], ctx);
     },
   }
 );
@@ -245,25 +197,97 @@ const {
 
 ---
 
-## Grobes gedankliches Modell
+## This I prefer
 
-Queries:
+Each query receives a key. Calls to useQuery across the component tree will be batched and only result in 1 Network call.
 
-- Haben keys
-- Daten sind "stale" sobald sie da sind
-  - Stale Time kan angepasst werden. (effektiv Client side caching)
-- stale Queries werden automatisch neu geladen wenn:
-  - window / tab focus
-  - remount des components
-- werden neu geladen wenn sie invalidiert werden
-- koennen auch imperativ geupdated werden
-
-Mutations:
-
-- haben mutate/mutateAsync Function
-- optimistic updates / optimistic ui update (einfacher als optimistic state update)
-- invalidieren queries per Callback
+```typescript
+useQuery({
+  queryKey: ["todos"],
+  queryFn: () => axios.get<Todo[]>("/api/todos"),
+  select: (res) => res.data,
+  initialData: [],
+});
+```
 
 ---
 
-# Live Demo
+## This I prefer
+
+And we get a bunch of stuff for free:
+
+```typescript
+const {data: todos, isLoading, isError, error, isPending, variables: addedTodo, status} = useQuery({
+  queryKey: ["todos"],
+  queryFn: () => axios.get<Todo[]>("/api/todos"),
+  select: (res) => res.data,
+  initialData: [],
+});
+```
+
+--- 
+
+## This I prefer
+
+More free stuff!
+
+
+```typescript
+useQuery({
+  queryKey: ["todos"],
+  queryFn: () => axios.get<Todo[]>("/api/todos"),
+  select: (res) => res.data,
+  initialData: [],
+  refetchInterval: 1000, // polling
+  refetchOnWindowFocus: true, // default: true
+  refetchOnReconnect: true, // default: true
+  refetchOnMount: true, // default: true
+  retry: 3, // default: 3
+  retryDelay: 1000,
+  cacheTime: 1000 * 60 * 5, // default: 5 minutes
+});
+```
+
+more stuff but no example provided:
+- Paginated Queries
+- Infinite Queries
+- Prefetching
+
+---
+
+## This I prefer
+
+- We also have a way to handle our mutations and get similar benefits.
+- When we invalidate the query this results in the query from the previous example to get refetched automatically
+
+
+```typescript
+const queryClient = useQueryClient();
+const {
+  mutate: addTodo,
+  isLoading: addTodoLoading,
+  isError: todoIsError,
+  error: addTodoError,
+  // Optimistic UI updates
+  isPending,
+  variables
+} = useMutation(
+  (title: string) =>
+    axios.post<Todo>("/api/todos", {title}).then((res) => res.data),
+  {
+    onSuccess() {
+      queryClient.invalidateQueries(["todos"]);
+    },
+  }
+);
+```
+
+--- 
+
+## Testing
+
+You might want to test network calls. Just use something like nock for that.
+
+---
+
+## Live Demo

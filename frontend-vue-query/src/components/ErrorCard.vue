@@ -13,5 +13,5 @@ const error = computed(() => {
 })
 </script>
 <template>
-  <v-alert closable type="error" :text="error" title="Something went wrong..." />
+  <v-alert closable type="error" :text="error ?? ''" title="Something went wrong..." />
 </template>

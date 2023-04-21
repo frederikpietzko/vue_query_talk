@@ -46,10 +46,12 @@ const beasts = computed(() =>
     <v-row class="justify-center" v-if="store.loading && store.beasts.length === 0 && !store.error">
       <v-progress-circular indeterminate />
     </v-row>
-    <v-row v-for="arr in beasts" v-if="!store.error">
-      <v-col class="v-col-4" v-for="beast in arr">
-        <BeastCard :beast="beast" />
-      </v-col>
-    </v-row>
+    <template v-if="!store.error">
+      <v-row v-for="arr in beasts">
+        <v-col class="v-col-4" v-for="beast in arr">
+          <BeastCard :beast="beast" />
+        </v-col>
+      </v-row>
+    </template>
   </v-container>
 </template>

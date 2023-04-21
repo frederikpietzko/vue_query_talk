@@ -14,17 +14,6 @@ const {
   error,
   isError
 } = useMutation(() => api.deleteBeast(props.beast.id), {
-  onMutate() {
-    const beasts = queryClient.getQueryData(['beastlist']) as MagicalBeastDto[]
-    queryClient.setQueryData(
-      ['beastlist'],
-      beasts.filter((b) => b.id !== props.beast.id)
-    )
-    return beasts
-  },
-  onError(_err, _vars, ctx) {
-    queryClient.setQueryData(['beastlist'], ctx)
-  },
   onSuccess() {
     queryClient.invalidateQueries(['beastlist'])
     queryClient.invalidateQueries(['beast', props.beast.id])

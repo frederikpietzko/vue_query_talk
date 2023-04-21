@@ -32,18 +32,18 @@ const router = useRouter()
       <v-col>
         <v-card>
           <v-card-title>
-            {{ beast.name }}
+            {{ beast?.name }}
           </v-card-title>
           <v-card-text>
-            {{ beast.description }}
+            {{ beast?.description }}
           </v-card-text>
           <v-card-text>
-            {{ beast.longDescription }}
+            {{ beast?.longDescription }}
           </v-card-text>
         </v-card>
       </v-col>
       <v-col>
-        <v-img :src="beast?.image" width="500" />
+        <v-img :src="beast?.image ?? ''" width="500" />
       </v-col>
     </v-row>
   </v-container>

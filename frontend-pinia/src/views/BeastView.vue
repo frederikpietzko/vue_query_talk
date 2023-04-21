@@ -45,7 +45,7 @@ const router = useRouter()
         </v-card>
       </v-col>
       <v-col>
-        <v-img :src="beast?.image" width="500" />
+        <v-img :src="beast?.image ?? ''" width="500" />
       </v-col>
     </v-row>
   </v-container>
